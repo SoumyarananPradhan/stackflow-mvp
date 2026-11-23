@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 import pytest
+from django.contrib import admin
 from django.db import IntegrityError
 from rest_framework.test import APIClient
 
@@ -87,6 +88,22 @@ class TestSignup:
         assert superuser.email == "admin@example.com"
         assert superuser.is_staff
         assert superuser.is_superuser
+
+    def test_user_admin_creation_uses_normalized_email(self):
+        organization = Organization.objects.create(name="Acme Corp")
+        form_class = admin.site._registry[User].add_form
+        form = form_class(
+            data={
+                "email": " Admin@Example.COM ",
+                "organization": organization.pk,
+                "password1": VALID_PASSWORD,
+                "password2": VALID_PASSWORD,
+            }
+        )
+
+        assert "username" not in form.fields
+        assert form.is_valid(), form.errors
+        assert form.save().email == "admin@example.com"
 
     def test_signup_logs_user_in(self, api_client):
         signup(api_client)
