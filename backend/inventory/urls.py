@@ -1,8 +1,12 @@
+from django.urls import path
 from rest_framework.routers import SimpleRouter
 
-from .views import ProductViewSet
+from .views import DashboardView, ProductViewSet
 
 router = SimpleRouter()
 router.register("products", ProductViewSet, basename="product")
 
-urlpatterns = router.urls
+urlpatterns = [
+    path("dashboard/", DashboardView.as_view(), name="dashboard"),
+    *router.urls,
+]

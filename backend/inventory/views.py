@@ -1,11 +1,12 @@
 from django.db import IntegrityError, transaction
-from django.db.models import BooleanField, Case, F, PositiveIntegerField, Value, When
+from django.db.models import BooleanField, Case, Count, F, PositiveIntegerField, Sum, Value, When
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from core.mixins import TenantScopedViewSetMixin
 
@@ -118,3 +119,39 @@ class ProductViewSet(TenantScopedViewSetMixin, viewsets.ModelViewSet):
             product = self.get_queryset().get(pk=product.pk)
 
         return Response(ProductSerializer(product, context=self.get_serializer_context()).data)
+
+
+class DashboardView(APIView):
+    def get(self, request):
+        products = Product.objects.filter(organization_id=request.user.organization_id)
+        totals = products.aggregate(
+            total_products=Count("pk"),
+            total_quantity=Coalesce(
+                Sum("quantity_on_hand"),
+                0,
+                output_field=PositiveIntegerField(),
+            ),
+        )
+        low_stock_items = (
+            products.annotate(
+                effective_threshold=Coalesce(
+                    "low_stock_threshold",
+                    "organization__default_low_stock_threshold",
+                    output_field=PositiveIntegerField(),
+                )
+            )
+            .filter(quantity_on_hand__lte=F("effective_threshold"))
+            .annotate(is_low_stock=Value(True, output_field=BooleanField()))
+            .order_by("quantity_on_hand", "name")[:50]
+        )
+
+        return Response(
+            {
+                **totals,
+                "low_stock_items": ProductSerializer(
+                    low_stock_items,
+                    many=True,
+                    context={"request": request},
+                ).data,
+            }
+        )
