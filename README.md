@@ -6,8 +6,9 @@ default or a product-specific threshold.
 
 ## Project links
 
-- **Live URL:** `https://YOUR-LIVE-URL` (placeholder until deployed)
-- **API reference:** [Swagger UI](/api/docs/) · [OpenAPI schema](/api/schema/)
+- **Live URL:** [StockFlow on Render](https://stackflow-mvp-r6oj.onrender.com)
+- **API reference:** [Swagger UI](https://stackflow-mvp-r6oj.onrender.com/api/docs/) ·
+  [OpenAPI schema](https://stackflow-mvp-r6oj.onrender.com/api/schema/)
 - **Deployment guide:** [DEPLOYMENT.md](./DEPLOYMENT.md)
 - **Demo access:** Not configured in this repository. Run `seed_demo` with
   password environment variables; the command prints the resulting credentials.
@@ -53,8 +54,9 @@ organization fields are read-only and assigned server-side.
 
 ## API
 
-All API routes are under `/api/`. Open the [API docs](/api/docs/) for request
-and response schemas.
+All API routes are under `/api/`. Open the deployed
+[API docs](https://stackflow-mvp-r6oj.onrender.com/api/docs/) for request and
+response schemas.
 
 | Area | Routes |
 | --- | --- |
