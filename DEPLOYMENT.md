@@ -68,10 +68,8 @@ finished.
 ## Post-deploy smoke checklist
 
 - Open `/` and confirm the app loads.
-- Sign up through the API (`/api/docs/`); the current auth screens are
-  placeholders. Keep the session cookie and CSRF token for authenticated API
-  requests.
-- Create a product through the API.
+- Sign up through the app and confirm the authenticated dashboard loads.
+- Create a product through the Products page.
 - Open a deep link such as `/products/1/edit` and refresh; the SPA should load.
 - Open `/api/docs/` and confirm the API documentation loads.
 - Confirm the host health check at `/api/health/` reports `{"status":"ok"}`.
