@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet } from "react-router";
 
 import { useAuth } from "../auth/useAuth";
+import { Button } from "./ui";
 
 const navigation = [
   { label: "Dashboard", to: "/dashboard" },
@@ -66,27 +67,27 @@ export function AppShell() {
               </p>
               <p className="text-xs text-slate-500">{user?.email}</p>
             </div>
-            <button
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-              onClick={handleLogout}
-              type="button"
-            >
+            <Button onClick={handleLogout} variant="secondary">
               Log out
-            </button>
+            </Button>
           </div>
-          <button
-            className="self-start rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 lg:hidden"
+          <Button
+            className="self-start lg:hidden"
             onClick={handleLogout}
-            type="button"
+            variant="secondary"
           >
             Log out
-          </button>
+          </Button>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {logoutError && (
-          <p className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+          <p
+            aria-live="assertive"
+            className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700"
+            role="alert"
+          >
             {logoutError}
           </p>
         )}

@@ -37,6 +37,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     }
+    queryClient.removeQueries({
+      predicate: (query) => query.queryKey[0] !== authQueryKey[0],
+    });
     queryClient.setQueryData(authQueryKey, null);
   }, [queryClient]);
 
