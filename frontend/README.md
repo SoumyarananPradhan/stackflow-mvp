@@ -8,6 +8,8 @@ npm run dev
 ```
 
 The Vite server proxies `/api` requests to `http://localhost:8000`.
+The development Django settings trust the default Vite origins on port `5173`.
+If Vite runs on another origin, add it to `CSRF_TRUSTED_ORIGINS`.
 
 ## Checks and production build
 
