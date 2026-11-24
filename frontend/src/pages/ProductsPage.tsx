@@ -1,10 +1,20 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
 
-import { Badge, Button, Card, EmptyState, ErrorState, Input, Notice, Spinner } from "../components/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  ConfirmDialog,
+  EmptyState,
+  ErrorState,
+  Input,
+  Notice,
+  Spinner,
+} from "../components/ui";
 import { apiRequest } from "../lib/api";
-import type { ProductListResponse } from "../lib/products";
+import type { Product, ProductListResponse } from "../lib/products";
 
 const pageSize = 20;
 
@@ -16,7 +26,10 @@ export function ProductsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [ordering, setOrdering] = useState<Ordering>("");
-  const notice = readNotice(location.state);
+  const [localNotice, setLocalNotice] = useState<string>();
+  const [deleteError, setDeleteError] = useState<string>();
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const timerId = window.setTimeout(() => {
@@ -39,6 +52,26 @@ export function ProductsPage() {
     },
     placeholderData: keepPreviousData,
   });
+  const deleteMutation = useMutation({
+    mutationFn: (productId: number) =>
+      apiRequest<void>(`/api/products/${productId}/`, { method: "DELETE" }),
+    onSuccess: async () => {
+      if (page > 1 && !products.isPlaceholderData && products.data?.results.length === 1) {
+        setPage((current) => current - 1);
+      }
+      setProductToDelete(null);
+      setDeleteError(undefined);
+      setLocalNotice("Product deleted.");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["products"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+      ]);
+    },
+    onError: (error) => {
+      setProductToDelete(null);
+      setDeleteError(error instanceof Error ? error.message : "Unable to delete product.");
+    },
+  });
 
   if (products.isPending) {
     return (
@@ -56,6 +89,7 @@ export function ProductsPage() {
 
   const data = products.data;
   const totalPages = Math.max(1, Math.ceil(data.count / pageSize));
+  const notice = localNotice ?? readNotice(location.state);
 
   function toggleOrdering(field: "name" | "quantity_on_hand") {
     setPage(1);
@@ -84,6 +118,11 @@ export function ProductsPage() {
       {notice && (
         <div className="mb-5">
           <Notice tone="success">{notice}</Notice>
+        </div>
+      )}
+      {deleteError && (
+        <div className="mb-5">
+          <Notice tone="error">{deleteError}</Notice>
         </div>
       )}
       {products.isError && products.data && (
@@ -192,6 +231,15 @@ export function ProductsPage() {
                           >
                             Edit
                           </Link>
+                          <Button
+                            onClick={() => {
+                              setDeleteError(undefined);
+                              setProductToDelete(product);
+                            }}
+                            variant="danger"
+                          >
+                            Delete
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -225,6 +273,27 @@ export function ProductsPage() {
           </>
         )}
       </Card>
+      <ConfirmDialog
+        confirmDisabled={deleteMutation.isPending}
+        confirmLabel={deleteMutation.isPending ? "Deleting…" : "Delete product"}
+        description={
+          productToDelete
+            ? `Are you sure you want to permanently delete "${productToDelete.name}"? This action cannot be undone.`
+            : undefined
+        }
+        onCancel={() => {
+          if (!deleteMutation.isPending) {
+            setProductToDelete(null);
+          }
+        }}
+        onConfirm={() => {
+          if (productToDelete) {
+            deleteMutation.mutate(productToDelete.id);
+          }
+        }}
+        open={productToDelete !== null}
+        title="Delete product?"
+      />
     </section>
   );
 }
