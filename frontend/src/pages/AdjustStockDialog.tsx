@@ -132,7 +132,7 @@ export function AdjustStockDialog({
             data-autofocus
             error={deltaError}
             id="adjust-delta"
-            inputMode="numeric"
+            inputMode="text"
             label="Quantity change"
             name="delta"
             onChange={(event) => {

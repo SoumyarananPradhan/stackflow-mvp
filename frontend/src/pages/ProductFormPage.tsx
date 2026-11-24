@@ -38,6 +38,12 @@ export function ProductFormPage() {
     queryKey: ["products", "detail", id],
     queryFn: () => apiRequest<Product>(`/api/products/${id}/`),
     enabled: id !== undefined,
+    retry: (failureCount, error) => {
+      if (error instanceof ApiError && error.status === 404) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 
   if (id && productQuery.isPending) {
@@ -237,6 +243,10 @@ function ProductEditor({
               Description
             </label>
             <textarea
+              aria-describedby={
+                fieldErrors.description ? "product-description-error" : undefined
+              }
+              aria-invalid={fieldErrors.description ? true : undefined}
               className="min-h-28 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               id="product-description"
               name="description"
@@ -244,7 +254,11 @@ function ProductEditor({
               value={values.description}
             />
             {fieldErrors.description && (
-              <p aria-live="polite" className="text-sm text-red-700">
+              <p
+                aria-live="polite"
+                className="text-sm text-red-700"
+                id="product-description-error"
+              >
                 {fieldErrors.description}
               </p>
             )}
