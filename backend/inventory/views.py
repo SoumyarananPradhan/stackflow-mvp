@@ -8,6 +8,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.models import Organization
 from core.mixins import TenantScopedViewSetMixin
 
 from .models import Product
@@ -155,3 +156,30 @@ class DashboardView(APIView):
                 ).data,
             }
         )
+
+
+class OrganizationSettingsSerializer(serializers.ModelSerializer):
+    default_low_stock_threshold = serializers.IntegerField(
+        min_value=0,
+        max_value=1_000_000,
+    )
+
+    class Meta:
+        model = Organization
+        fields = ("default_low_stock_threshold",)
+
+
+class OrganizationSettingsView(APIView):
+    def get(self, request):
+        serializer = OrganizationSettingsSerializer(request.user.organization)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        serializer = OrganizationSettingsSerializer(
+            request.user.organization,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
