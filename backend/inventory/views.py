@@ -2,6 +2,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import BooleanField, Case, Count, F, PositiveIntegerField, Sum, Value, When
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -23,6 +24,12 @@ class StockAdjustmentSerializer(serializers.Serializer):
         if value == 0:
             raise serializers.ValidationError("Delta must be non-zero.")
         return value
+
+
+class DashboardSerializer(serializers.Serializer):
+    total_products = serializers.IntegerField()
+    total_quantity = serializers.IntegerField()
+    low_stock_items = ProductSerializer(many=True)
 
 
 class ProductViewSet(TenantScopedViewSetMixin, viewsets.ModelViewSet):
@@ -98,6 +105,15 @@ class ProductViewSet(TenantScopedViewSetMixin, viewsets.ModelViewSet):
     def perform_update(self, serializer):
         self._save_product(serializer, super().perform_update)
 
+    @extend_schema(
+        request=StockAdjustmentSerializer,
+        responses={
+            200: ProductSerializer,
+            400: OpenApiResponse(description="Invalid adjustment or insufficient stock."),
+            404: OpenApiResponse(description="Product not found."),
+            429: OpenApiResponse(description="Request rate limit exceeded."),
+        },
+    )
     @action(detail=True, methods=("post",))
     def adjust(self, request, pk=None):
         adjustment = StockAdjustmentSerializer(data=request.data)
@@ -123,6 +139,7 @@ class ProductViewSet(TenantScopedViewSetMixin, viewsets.ModelViewSet):
 
 
 class DashboardView(APIView):
+    @extend_schema(responses={200: DashboardSerializer})
     def get(self, request):
         products = Product.objects.filter(organization_id=request.user.organization_id)
         totals = products.aggregate(
@@ -170,10 +187,18 @@ class OrganizationSettingsSerializer(serializers.ModelSerializer):
 
 
 class OrganizationSettingsView(APIView):
+    @extend_schema(responses={200: OrganizationSettingsSerializer})
     def get(self, request):
         serializer = OrganizationSettingsSerializer(request.user.organization)
         return Response(serializer.data)
 
+    @extend_schema(
+        request=OrganizationSettingsSerializer,
+        responses={
+            200: OrganizationSettingsSerializer,
+            400: OpenApiResponse(description="Invalid settings."),
+        },
+    )
     def patch(self, request):
         serializer = OrganizationSettingsSerializer(
             request.user.organization,

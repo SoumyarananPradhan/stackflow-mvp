@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 
 # ---------- Middleware ----------
 MIDDLEWARE = [
+    "config.middleware.ApiJsonErrorMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -117,6 +118,18 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+    ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.UserRateThrottle",
+        "accounts.throttling.IPScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "user": os.environ.get("API_USER_THROTTLE_RATE", "1000/day"),
+        "login": os.environ.get("API_LOGIN_THROTTLE_RATE", "10/minute"),
+        "signup": os.environ.get("API_SIGNUP_THROTTLE_RATE", "10/minute"),
+    },
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",

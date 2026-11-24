@@ -20,6 +20,10 @@ Multi-tenant SaaS inventory management MVP.
 - Stock adjustments cannot bring quantity below zero.
 - Stock adjustment notes are validated but not stored; stock-movement history is out of scope.
 
+## API Documentation
+
+OpenAPI schema is served at `/api/schema/`; Swagger UI is available at `/api/docs/`.
+
 ## Quick Start
 
 ```bash

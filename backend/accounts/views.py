@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate, login, logout, password_validation
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.middleware.csrf import get_token
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -91,6 +92,7 @@ class CsrfView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []  # no auth needed
 
+    @extend_schema(responses={204: None})
     def get(self, request):
         get_token(request)  # forces Django to set the csrftoken cookie
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -101,7 +103,17 @@ class SignupView(APIView):
 
     permission_classes = [AllowAny]
     authentication_classes = [CsrfEnforcedSessionAuthentication]
+    throttle_scope = "signup"
 
+    @extend_schema(
+        auth=[],
+        request=SignupSerializer,
+        responses={
+            201: UserSerializer,
+            400: OpenApiResponse(description="Invalid signup data."),
+            429: OpenApiResponse(description="Signup rate limit exceeded."),
+        },
+    )
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -115,7 +127,17 @@ class LoginView(APIView):
 
     permission_classes = [AllowAny]
     authentication_classes = [CsrfEnforcedSessionAuthentication]
+    throttle_scope = "login"
 
+    @extend_schema(
+        auth=[],
+        request=LoginSerializer,
+        responses={
+            200: UserSerializer,
+            400: OpenApiResponse(description="Invalid credentials or login data."),
+            429: OpenApiResponse(description="Login rate limit exceeded."),
+        },
+    )
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -136,6 +158,7 @@ class LogoutView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=None, responses={204: None})
     def post(self, request):
         logout(request)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -146,5 +169,6 @@ class MeView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(responses={200: UserSerializer})
     def get(self, request):
         return Response(UserSerializer(request.user).data)
