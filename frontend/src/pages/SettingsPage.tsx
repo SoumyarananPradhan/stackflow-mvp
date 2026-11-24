@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Button, Card, ErrorState, Input, Notice, Spinner } from "../components/ui";
-import { ApiError, apiRequest } from "../lib/api";
+import { apiRequest } from "../lib/api";
+import { getApiFieldError } from "../lib/formErrors";
 
 interface OrganizationSettings {
   default_low_stock_threshold: number;
@@ -38,12 +39,12 @@ export function SettingsPage() {
     },
   });
 
-  const serverFieldError = readFieldError(
+  const serverFieldError = getApiFieldError(
     mutation.error,
     "default_low_stock_threshold",
   );
   const fieldError = clientError ?? serverFieldError;
-  const nonFieldError = readFieldError(mutation.error, "non_field_errors");
+  const nonFieldError = getApiFieldError(mutation.error, "non_field_errors");
   const formError =
     nonFieldError ??
     (mutation.error && !serverFieldError ? mutation.error.message : undefined);
@@ -118,7 +119,7 @@ export function SettingsPage() {
           {formError && (
             <div
               aria-live="assertive"
-              className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+              className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
               ref={formErrorRef}
               role="alert"
               tabIndex={-1}
@@ -158,19 +159,4 @@ export function SettingsPage() {
       </Card>
     </section>
   );
-}
-
-function readFieldError(error: unknown, field: string): string | undefined {
-  if (!(error instanceof ApiError)) {
-    return undefined;
-  }
-
-  const value = error.fieldErrors[field];
-  if (typeof value === "string") {
-    return value;
-  }
-  if (Array.isArray(value)) {
-    return value.filter((message): message is string => typeof message === "string").join(" ");
-  }
-  return undefined;
 }

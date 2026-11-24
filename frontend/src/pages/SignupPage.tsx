@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router";
 
-import { ApiError, apiRequest } from "../lib/api";
+import { apiRequest } from "../lib/api";
+import { getApiFieldError } from "../lib/formErrors";
 import { Button, Card, Input, Spinner } from "../components/ui";
 import type { AuthUser } from "../auth/context";
 
@@ -47,10 +48,10 @@ export function SignupPage() {
   });
 
   const serverErrors: SignupErrors = {
-    email: readFieldError(mutation.error, "email"),
-    password: readFieldError(mutation.error, "password"),
-    confirm_password: readFieldError(mutation.error, "confirm_password"),
-    organization_name: readFieldError(mutation.error, "organization_name"),
+    email: getApiFieldError(mutation.error, "email"),
+    password: getApiFieldError(mutation.error, "password"),
+    confirm_password: getApiFieldError(mutation.error, "confirm_password"),
+    organization_name: getApiFieldError(mutation.error, "organization_name"),
   };
   const fieldErrors: SignupErrors = {
     email: clientErrors.email ?? serverErrors.email,
@@ -58,19 +59,25 @@ export function SignupPage() {
     confirm_password: clientErrors.confirm_password ?? serverErrors.confirm_password,
     organization_name: clientErrors.organization_name ?? serverErrors.organization_name,
   };
-  const firstInvalidField = signupFields.find((field) => fieldErrors[field]);
   const hasServerFieldErrors = Object.values(serverErrors).some(Boolean);
   const formError =
-    readFieldError(mutation.error, "non_field_errors") ??
+    getApiFieldError(mutation.error, "non_field_errors") ??
     (mutation.error && !hasServerFieldErrors ? mutation.error.message : undefined);
 
   useEffect(() => {
-    if (firstInvalidField) {
-      document.getElementById(`signup-${firstInvalidField}`)?.focus();
+    if (!mutation.error) {
+      return;
+    }
+
+    const firstServerField = signupFields.find((field) =>
+      getApiFieldError(mutation.error, field),
+    );
+    if (firstServerField) {
+      document.getElementById(`signup-${firstServerField}`)?.focus();
     } else if (formError) {
       formErrorRef.current?.focus();
     }
-  }, [firstInvalidField, formError]);
+  }, [formError, mutation.error]);
 
   function updateField(field: SignupField, value: string) {
     mutation.reset();
@@ -103,7 +110,9 @@ export function SignupPage() {
     }
 
     setClientErrors(errors);
-    if (Object.keys(errors).length > 0) {
+    const firstInvalidField = signupFields.find((field) => errors[field]);
+    if (firstInvalidField) {
+      document.getElementById(`signup-${firstInvalidField}`)?.focus();
       return;
     }
 
@@ -128,7 +137,7 @@ export function SignupPage() {
           {formError && (
             <div
               aria-live="assertive"
-              className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+              className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
               ref={formErrorRef}
               role="alert"
               tabIndex={-1}
@@ -196,19 +205,4 @@ export function SignupPage() {
       </p>
     </main>
   );
-}
-
-function readFieldError(error: unknown, field: string): string | undefined {
-  if (!(error instanceof ApiError)) {
-    return undefined;
-  }
-
-  const value = error.fieldErrors[field];
-  if (typeof value === "string") {
-    return value;
-  }
-  if (Array.isArray(value)) {
-    return value.filter((message): message is string => typeof message === "string").join(" ");
-  }
-  return undefined;
 }
