@@ -15,6 +15,7 @@ import {
 } from "../components/ui";
 import { apiRequest } from "../lib/api";
 import type { Product, ProductListResponse } from "../lib/products";
+import { AdjustStockDialog } from "./AdjustStockDialog";
 
 const pageSize = 20;
 
@@ -29,6 +30,7 @@ export function ProductsPage() {
   const [localNotice, setLocalNotice] = useState<string>();
   const [deleteError, setDeleteError] = useState<string>();
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [productToAdjust, setProductToAdjust] = useState<Product | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -232,6 +234,12 @@ export function ProductsPage() {
                             Edit
                           </Link>
                           <Button
+                            onClick={() => setProductToAdjust(product)}
+                            variant="secondary"
+                          >
+                            Adjust stock
+                          </Button>
+                          <Button
                             onClick={() => {
                               setDeleteError(undefined);
                               setProductToDelete(product);
@@ -294,6 +302,17 @@ export function ProductsPage() {
         open={productToDelete !== null}
         title="Delete product?"
       />
+      {productToAdjust && (
+        <AdjustStockDialog
+          key={productToAdjust.id}
+          onAdjusted={() => {
+            setProductToAdjust(null);
+            setLocalNotice("Stock adjusted.");
+          }}
+          onClose={() => setProductToAdjust(null)}
+          product={productToAdjust}
+        />
+      )}
     </section>
   );
 }
