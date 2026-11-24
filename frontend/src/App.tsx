@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from "rea
 import { AuthProvider } from "./auth/AuthContext";
 import { useAuth } from "./auth/useAuth";
 import { AppShell } from "./components/AppShell";
+import { DashboardPage } from "./pages/DashboardPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
@@ -23,10 +24,7 @@ export default function App() {
             </Route>
             <Route element={<ProtectedRoute />}>
               <Route element={<Navigate replace to="/dashboard" />} path="/" />
-              <Route
-                element={<PlaceholderPage title="Dashboard" />}
-                path="/dashboard"
-              />
+              <Route element={<DashboardPage />} path="/dashboard" />
               <Route element={<PlaceholderPage title="Products" />} path="/products" />
               <Route
                 element={<PlaceholderPage title="New product" />}
