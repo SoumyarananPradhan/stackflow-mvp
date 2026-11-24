@@ -7,7 +7,7 @@ import { AppShell } from "./components/AppShell";
 import { DashboardPage } from "./pages/DashboardPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
-import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { ProductFormPage } from "./pages/ProductFormPage";
 import { ProductsPage } from "./pages/ProductsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { SignupPage } from "./pages/SignupPage";
@@ -28,14 +28,8 @@ export default function App() {
               <Route element={<Navigate replace to="/dashboard" />} path="/" />
               <Route element={<DashboardPage />} path="/dashboard" />
               <Route element={<ProductsPage />} path="/products" />
-              <Route
-                element={<PlaceholderPage title="New product" />}
-                path="/products/new"
-              />
-              <Route
-                element={<PlaceholderPage title="Edit product" />}
-                path="/products/:id/edit"
-              />
+              <Route element={<ProductFormPage />} path="/products/new" />
+              <Route element={<ProductFormPage />} path="/products/:id/edit" />
               <Route element={<SettingsPage />} path="/settings" />
             </Route>
             <Route element={<NotFoundPage />} path="*" />
