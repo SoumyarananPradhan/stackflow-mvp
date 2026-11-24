@@ -33,7 +33,7 @@ export function Input({
         {...props}
       />
       {error && (
-        <p className="text-sm text-red-700" id={errorId} role="alert">
+        <p aria-live="polite" className="text-sm text-red-700" id={errorId}>
           {error}
         </p>
       )}

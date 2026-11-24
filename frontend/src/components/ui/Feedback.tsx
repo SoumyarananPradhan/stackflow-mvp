@@ -102,6 +102,7 @@ export function Notice({
 
   return (
     <div
+      aria-live={tone === "error" ? "assertive" : "polite"}
       className={`rounded-md border px-4 py-3 text-sm ${tones[tone]}`}
       role={tone === "error" ? "alert" : "status"}
     >
