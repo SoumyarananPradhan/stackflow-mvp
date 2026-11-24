@@ -40,7 +40,7 @@ export default function App() {
   );
 }
 
-function ProtectedRoute() {
+export function ProtectedRoute() {
   const { user, isLoading, error } = useAuth();
   const location = useLocation();
 
