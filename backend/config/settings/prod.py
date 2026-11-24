@@ -8,6 +8,9 @@ from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F403, F401
 
+debug_setting = os.environ.get("DEBUG", "false").strip().lower()
+if debug_setting not in {"false", "0", "no", "off"}:
+    raise ImproperlyConfigured("DEBUG must remain disabled in production.")
 DEBUG = False
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
