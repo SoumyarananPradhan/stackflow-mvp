@@ -8,6 +8,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { SettingsPage } from "./pages/SettingsPage";
 import { SignupPage } from "./pages/SignupPage";
 
 const queryClient = new QueryClient();
@@ -34,7 +35,7 @@ export default function App() {
                 element={<PlaceholderPage title="Edit product" />}
                 path="/products/:id/edit"
               />
-              <Route element={<PlaceholderPage title="Settings" />} path="/settings" />
+              <Route element={<SettingsPage />} path="/settings" />
             </Route>
             <Route element={<NotFoundPage />} path="*" />
           </Routes>
