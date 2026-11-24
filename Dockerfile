@@ -25,6 +25,7 @@ RUN DJANGO_SETTINGS_MODULE=config.settings.base python manage.py collectstatic -
 
 RUN groupadd --system app && useradd --system --gid app --create-home app
 COPY --chmod=755 entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN python -c "from pathlib import Path; p = Path('/usr/local/bin/entrypoint.sh'); p.write_bytes(p.read_bytes().replace(b'\r\n', b'\n'))"
 
 ARG PORT=8000
 ENV PORT=${PORT}
