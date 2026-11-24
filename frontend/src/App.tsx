@@ -8,6 +8,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { ProductsPage } from "./pages/ProductsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { SignupPage } from "./pages/SignupPage";
 
@@ -26,7 +27,7 @@ export default function App() {
             <Route element={<ProtectedRoute />}>
               <Route element={<Navigate replace to="/dashboard" />} path="/" />
               <Route element={<DashboardPage />} path="/dashboard" />
-              <Route element={<PlaceholderPage title="Products" />} path="/products" />
+              <Route element={<ProductsPage />} path="/products" />
               <Route
                 element={<PlaceholderPage title="New product" />}
                 path="/products/new"
