@@ -6,6 +6,8 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -35,6 +37,7 @@ class DashboardSerializer(serializers.Serializer):
 class ProductViewSet(TenantScopedViewSetMixin, viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    permission_classes = (IsAuthenticated,)
     filter_backends = (SearchFilter, OrderingFilter)
     search_fields = ("name", "sku")
     ordering_fields = (
@@ -138,10 +141,13 @@ class ProductViewSet(TenantScopedViewSetMixin, viewsets.ModelViewSet):
         return Response(ProductSerializer(product, context=self.get_serializer_context()).data)
 
 
-class DashboardView(APIView):
+class DashboardView(TenantScopedViewSetMixin, GenericAPIView):
+    queryset = Product.objects.all()
+    permission_classes = (IsAuthenticated,)
+
     @extend_schema(responses={200: DashboardSerializer})
     def get(self, request):
-        products = Product.objects.filter(organization_id=request.user.organization_id)
+        products = self.get_queryset()
         totals = products.aggregate(
             total_products=Count("pk"),
             total_quantity=Coalesce(
@@ -187,6 +193,8 @@ class OrganizationSettingsSerializer(serializers.ModelSerializer):
 
 
 class OrganizationSettingsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     @extend_schema(responses={200: OrganizationSettingsSerializer})
     def get(self, request):
         serializer = OrganizationSettingsSerializer(request.user.organization)
